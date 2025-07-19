@@ -1,0 +1,70 @@
+{
+  "compilerOptions": {
+    // Type Checking
+    "strict": true,                           // Enable all strict type-checking options
+    "noImplicitAny": true,                   // Error on expressions with an implied 'any' type
+    "strictNullChecks": true,                // Enable strict null checks
+    "strictFunctionTypes": true,             // Enable strict checking of function types
+    "strictBindCallApply": true,             // Enable strict checking of bind, call, and apply
+    "strictPropertyInitialization": true,   // Ensure class properties are initialized
+    "noImplicitReturns": true,              // Error when not all code paths return a value
+    "noFallthroughCasesInSwitch": true,     // Error on fallthrough cases in switch statements
+    "noUncheckedIndexedAccess": true,       // Include 'undefined' in index signature results
+    "exactOptionalPropertyTypes": true,      // Enable exact optional property types
+    
+    // Module Resolution
+    "target": "ES2022",                      // Modern JavaScript target
+    "lib": ["ES2022", "DOM", "DOM.Iterable"], // Include modern JavaScript and DOM APIs
+    "allowJs": false,                        // Don't allow JavaScript files (TypeScript only)
+    "checkJs": false,                        // Don't type-check JavaScript files
+    "jsx": "react-jsx",                      // Modern JSX runtime
+    "module": "ESNext",                      // Modern module system
+    "moduleResolution": "bundler",           // Use bundler module resolution (Vite)
+    "resolveJsonModule": true,               // Allow importing JSON files
+    "allowSyntheticDefaultImports": true,    // Allow default imports from modules with no default export
+    "esModuleInterop": true,                 // Enable interop between CommonJS and ES modules
+    "forceConsistentCasingInFileNames": true, // Ensure consistent casing in file names
+    
+    // Emit
+    "declaration": true,                     // Generate .d.ts files
+    "declarationMap": true,                  // Generate declaration source maps
+    "sourceMap": true,                       // Generate source maps
+    "outDir": "./dist",                      // Output directory
+    "removeComments": false,                 // Keep comments in output
+    "noEmit": true,                          // Don't emit files (Vite handles this)
+    "isolatedModules": true,                 // Ensure each file can be safely transpiled
+    "allowImportingTsExtensions": true,      // Allow importing .ts/.tsx files
+    "noEmitOnError": true,                   // Don't emit if there are errors
+    
+    // Path Mapping (for clean imports)
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/pages/*": ["src/pages/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"],
+      "@/services/*": ["src/services/*"],
+      "@/assets/*": ["src/assets/*"]
+    },
+    
+    // Advanced
+    "skipLibCheck": true,                    // Skip type checking of declaration files
+    "verbatimModuleSyntax": true            // Emit exactly what you write for imports/exports
+  },
+  "include": [
+    "src/**/*",
+    "src/**/*.tsx",
+    "src/**/*.ts",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ],
+  "ts-node": {
+    "esm": true
+  }
+} 

@@ -1,3 +1,4 @@
+import Navigation from '@/components/Navigation'
 import Home from '@/pages/Home'
 
 // ===================================
@@ -15,8 +16,13 @@ interface AppProps {
 function App(): React.JSX.Element {
   return (
     <div>
+      {/* Navigation */}
+      <Navigation />
+      
       {/* Main application content */}
-      <Home />
+      <main role="main">
+        <Home />
+      </main>
     </div>
   )
 }

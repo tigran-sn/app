@@ -1,5 +1,6 @@
 // Barrel exports for all components
 export { default as App } from './App'
+export { default as Navigation } from './Navigation'
 
 // Future components will be added here:
 // export { default as Button } from './Button'

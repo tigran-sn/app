@@ -1,6 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import App from '@/components/App'
 import { Home, Login, SignUp, Dashboard, NotFound } from '@/pages'
+import { ProtectedRoute, PublicOnlyRoute } from '@/components/RouteGuards'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
@@ -40,7 +41,11 @@ const routes: AppRoute[] = [
       },
       {
         path: 'login',
-        element: <Login />,
+        element: (
+          <PublicOnlyRoute>
+            <Login />
+          </PublicOnlyRoute>
+        ),
         metadata: {
           title: 'Login - React Learning',
           description: 'Sign in to your account',
@@ -49,7 +54,11 @@ const routes: AppRoute[] = [
       },
       {
         path: 'signup',
-        element: <SignUp />,
+        element: (
+          <PublicOnlyRoute>
+            <SignUp />
+          </PublicOnlyRoute>
+        ),
         metadata: {
           title: 'Sign Up - React Learning',
           description: 'Create your account to start learning',
@@ -58,7 +67,11 @@ const routes: AppRoute[] = [
       },
       {
         path: 'dashboard',
-        element: <Dashboard />,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
         metadata: {
           title: 'Dashboard - React Learning',
           description: 'Your personal dashboard',

@@ -1,16 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROUTES } from '@/routes'
 import styles from './Login.module.css'
 
 // ===================================
-// TYPESCRIPT INTERFACES & TYPES
+// TYPESCRIPT INTERFACES
 // ===================================
-
-interface LoginProps {
-  // Props for future enhancements (onLogin callback, etc.)
-}
 
 interface LoginFormData {
   username: string
@@ -36,7 +32,7 @@ interface ValidationRules {
 }
 
 // ===================================
-// VALIDATION RULES
+// VALIDATION CONFIGURATION
 // ===================================
 
 const validationRules: ValidationRules = {
@@ -51,12 +47,16 @@ const validationRules: ValidationRules = {
 }
 
 // ===================================
-// MAIN COMPONENT
+// LOGIN COMPONENT
 // ===================================
 
 function Login(): React.JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, error: authError, isLoading, clearError } = useAuth()
+
+  // Get the redirect path from location state (set by ProtectedRoute)
+  const from = (location.state as { from?: string })?.from || ROUTES.DASHBOARD
 
   // Form state
   const [formData, setFormData] = useState<LoginFormData>({
@@ -68,7 +68,7 @@ function Login(): React.JSX.Element {
   const [errors, setErrors] = useState<FormErrors>({})
 
   // Validation helper function
-  const validateField = (fieldName: keyof LoginFormData, value: string): string | undefined => {
+  const validateField = (fieldName: keyof LoginFormData, value: string): string | null => {
     const rules = validationRules[fieldName]
     
     for (const rule of rules) {
@@ -85,43 +85,60 @@ function Login(): React.JSX.Element {
       }
     }
     
-    return undefined
+    return null
   }
 
   // Validate entire form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
-    
+    let isValid = true
+
     // Validate each field
-    Object.entries(formData).forEach(([fieldName, value]) => {
-      const error = validateField(fieldName as keyof LoginFormData, value)
+    Object.keys(formData).forEach((key) => {
+      const fieldName = key as keyof LoginFormData
+      const error = validateField(fieldName, formData[fieldName])
+      
       if (error) {
-        newErrors[fieldName as keyof FormErrors] = error
+        newErrors[fieldName] = error
+        isValid = false
       }
     })
-    
+
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return isValid
   }
 
-  // Event Handlers
+  // Handle input changes with real-time validation
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = event.target
-    
+    const fieldName = name as keyof LoginFormData
+
+    // Update form data
     setFormData(prevData => ({
       ...prevData,
-      [name]: value
+      [fieldName]: value
     }))
-    
-    // Clear error for this field when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors(prevErrors => ({
-        ...prevErrors,
-        [name]: undefined
-      }))
+
+    // Clear field error if it exists
+    if (errors[fieldName]) {
+      setErrors(prevErrors => {
+        const newErrors = { ...prevErrors }
+        delete newErrors[fieldName]
+        return newErrors
+      })
+    }
+
+    // Clear general error when user starts typing
+    if (errors.general) {
+      setErrors(prevErrors => {
+        const newErrors = { ...prevErrors }
+        delete newErrors.general
+        return newErrors
+      })
     }
   }
 
+  // Handle form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault()
     
@@ -135,6 +152,7 @@ function Login(): React.JSX.Element {
     
     try {
       console.log('🔐 Submitting login form for user:', formData.username)
+      console.log('📍 Will redirect to:', from)
       
       // Call the authentication service
       await login({
@@ -142,10 +160,10 @@ function Login(): React.JSX.Element {
         password: formData.password
       })
       
-      console.log('✅ Login successful, redirecting to home')
+      console.log('✅ Login successful, redirecting to:', from)
       
-      // Redirect to home page after successful login
-      navigate(ROUTES.HOME)
+      // Redirect to the originally requested page or dashboard
+      navigate(from, { replace: true })
       
     } catch (error) {
       console.error('❌ Login form submission failed:', error)
@@ -157,17 +175,10 @@ function Login(): React.JSX.Element {
     }
   }
 
-  const handleForgotPassword = (): void => {
-    console.log('Forgot password clicked')
-    alert('Forgot password functionality will be implemented later!')
-  }
-
-  // Note: handleSignUp is no longer needed as we use Link component
-
-  // Helper function to get input classes
+  // Helper function to get input classes based on validation state
   const getInputClasses = (fieldName: keyof FormErrors): string => {
     const baseClass = styles.input
-    const errorClass = errors[fieldName] ? styles.error : ''
+    const errorClass = errors[fieldName] ? styles.inputError : ''
     
     return `${baseClass} ${errorClass}`.trim()
   }
@@ -175,19 +186,22 @@ function Login(): React.JSX.Element {
   return (
     <div className={styles.container}>
       <div className={styles.loginCard}>
-        {/* Header */}
-        <div className={styles.header}>
+        <header className={styles.header}>
           <h1 className={styles.title}>Welcome Back</h1>
-          <p className={styles.subtitle}>
-            Sign in to your account to continue your React learning journey
-          </p>
-        </div>
+          <p className={styles.subtitle}>Sign in to your account</p>
+          
+          {/* Show redirect notification if coming from protected route */}
+          {from !== ROUTES.DASHBOARD && (
+            <div className={styles.redirectNotice}>
+              🔐 Please sign in to access the requested page
+            </div>
+          )}
+        </header>
 
-        {/* Login Form */}
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
           {/* General Error Message */}
           {errors.general && (
-            <div className={styles.errorMessage} role="alert">
+            <div className={styles.errorBanner} role="alert">
               {errors.general}
             </div>
           )}
@@ -251,27 +265,19 @@ function Login(): React.JSX.Element {
           </button>
         </form>
 
-        {/* Footer */}
-        <div className={styles.footer}>
-          <p className={styles.footerText}>
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className={styles.footerLink}
-            >
-              Forgot your password?
-            </button>
-          </p>
+        {/* Footer Links */}
+        <footer className={styles.footer}>
           <p className={styles.footerText}>
             Don't have an account?{' '}
             <Link to={ROUTES.SIGNUP} className={styles.footerLink}>
               Sign up here
             </Link>
           </p>
+          
           <p className={styles.footerText} style={{ marginTop: 'var(--spacing-4)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
             💡 Enter your TradeCloud credentials to login
           </p>
-        </div>
+        </footer>
       </div>
     </div>
   )

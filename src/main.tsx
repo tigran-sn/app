@@ -1,7 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { RouterProvider } from 'react-router-dom'
+import { router } from '@/routes'
 import './index.css'
-import App from './components/App'
 
 // Get the root element with proper type safety
 const rootElement = document.getElementById('root')
@@ -17,6 +18,6 @@ const root = createRoot(rootElement)
 
 root.render(
   <StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </StrictMode>
 )

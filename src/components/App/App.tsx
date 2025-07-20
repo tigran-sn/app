@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { Outlet } from 'react-router-dom'
 import Navigation from '@/components/Navigation'
-import { Home, Login } from '@/pages'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
@@ -10,46 +9,19 @@ interface AppProps {
   // Props will be added here as the app evolves
 }
 
-// Type for available pages
-type PageType = 'home' | 'login'
-
 // ===================================
 // MAIN APP COMPONENT
 // ===================================
 
 function App(): React.JSX.Element {
-  // Current page state
-  const [currentPage, setCurrentPage] = useState<PageType>('home')
-
-  // Page change handler
-  const handlePageChange = (page: PageType): void => {
-    setCurrentPage(page)
-    console.log(`App: Switched to ${page} page`)
-  }
-
-  // Helper function to render the current page
-  const renderCurrentPage = (): React.JSX.Element => {
-    switch (currentPage) {
-      case 'home':
-        return <Home />
-      case 'login':
-        return <Login />
-      default:
-        return <Home />
-    }
-  }
-
   return (
     <div>
-      {/* Navigation with page change callback */}
-      <Navigation 
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
+      {/* Navigation - no longer needs props, uses React Router internally */}
+      <Navigation />
       
-      {/* Main application content */}
+      {/* Main application content - rendered by React Router */}
       <main role="main">
-        {renderCurrentPage()}
+        <Outlet />
       </main>
     </div>
   )

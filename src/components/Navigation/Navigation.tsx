@@ -1,23 +1,20 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { ROUTES } from '@/routes'
 import styles from './Navigation.module.css'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
 // ===================================
 
-// Type for available pages (should match App component)
-type PageType = 'home' | 'login'
-
 interface NavigationProps {
-  currentPage: PageType
-  onPageChange: (page: PageType) => void
+  // Props for future enhancements (theme, user state, etc.)
 }
 
 interface NavigationItem {
   readonly id: string
   readonly label: string
-  readonly href?: string
-  readonly onClick?: () => void
+  readonly to: string
   readonly isActive?: boolean
 }
 
@@ -25,34 +22,33 @@ interface NavigationItem {
 // MAIN COMPONENT
 // ===================================
 
-function Navigation({ currentPage, onPageChange }: NavigationProps): React.JSX.Element {
+function Navigation(): React.JSX.Element {
   // Mobile menu toggle state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
+  
+  // Get current location from React Router
+  const location = useLocation()
 
   // Navigation items configuration
   const navigationItems: readonly NavigationItem[] = [
     {
       id: 'home',
       label: 'Home',
-      href: '#',
-      onClick: () => handleNavigation('home'),
-      isActive: currentPage === 'home'
+      to: ROUTES.HOME,
+      isActive: location.pathname === ROUTES.HOME
     },
     {
       id: 'login',
       label: 'Login',
-      href: '#',
-      onClick: () => handleNavigation('login'),
-      isActive: currentPage === 'login'
+      to: ROUTES.LOGIN,
+      isActive: location.pathname === ROUTES.LOGIN
     }
   ] as const
 
   // Event Handlers
-  const handleNavigation = (pageId: PageType): void => {
-    onPageChange(pageId) // Use the callback from App component
+  const handleNavigation = (to: string): void => {
     setIsMobileMenuOpen(false) // Close mobile menu on navigation
-    
-    console.log(`Navigation: Changed to ${pageId} page`)
+    console.log(`Navigation: Navigating to ${to}`)
   }
 
   const toggleMobileMenu = (): void => {
@@ -60,7 +56,7 @@ function Navigation({ currentPage, onPageChange }: NavigationProps): React.JSX.E
   }
 
   const handleBrandClick = (): void => {
-    handleNavigation('home')
+    setIsMobileMenuOpen(false)
   }
 
   // Helper function to get menu link classes
@@ -92,13 +88,14 @@ function Navigation({ currentPage, onPageChange }: NavigationProps): React.JSX.E
       <div className={styles.container}>
         <div className={styles.nav}>
           {/* Brand/Logo */}
-          <button
+          <Link
+            to={ROUTES.HOME}
             onClick={handleBrandClick}
             className={styles.brand}
             aria-label="Go to home page"
           >
             React Learning
-          </button>
+          </Link>
 
           {/* Mobile Menu Button */}
           <button
@@ -127,15 +124,16 @@ function Navigation({ currentPage, onPageChange }: NavigationProps): React.JSX.E
                 className={styles.menuItem}
                 role="none"
               >
-                <button
-                  onClick={item.onClick}
+                <Link
+                  to={item.to}
+                  onClick={() => handleNavigation(item.to)}
                   className={getMenuLinkClasses(item)}
                   role="menuitem"
                   aria-current={item.isActive ? 'page' : undefined}
                   tabIndex={0}
                 >
                   {item.label}
-                </button>
+                </Link>
               </li>
             ))}
           </ul>

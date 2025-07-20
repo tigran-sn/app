@@ -1,0 +1,134 @@
+/* ===================================
+   HOME PAGE STYLES - SIMPLE & CLEAN
+   =================================== */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-8);
+}
+
+.hero {
+  text-align: center;
+  padding: var(--spacing-16) 0;
+  margin-bottom: var(--spacing-12);
+}
+
+.title {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.subtitle {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-8);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--line-height-relaxed);
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-8);
+  margin-bottom: var(--spacing-16);
+}
+
+.featureCard {
+  background-color: var(--color-surface);
+  border: var(--border-width-1) solid var(--color-border);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-6);
+  transition: all var(--transition-base);
+}
+
+.featureCard:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-border-focus);
+}
+
+.featureTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-3);
+}
+
+.featureDescription {
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.cta {
+  text-align: center;
+  padding: var(--spacing-12) 0;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+}
+
+.ctaButton:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+}
+
+.ctaButton:active {
+  transform: translateY(0);
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+  
+  .hero {
+    padding: var(--spacing-8) 0;
+  }
+  
+  .title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .subtitle {
+    font-size: var(--font-size-lg);
+  }
+  
+  .features {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-4);
+  }
+  
+  .featureCard {
+    padding: var(--spacing-4);
+  }
+  
+  .cta {
+    padding: var(--spacing-8) 0;
+  }
+} 

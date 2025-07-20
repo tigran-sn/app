@@ -5,8 +5,12 @@ import styles from './Navigation.module.css'
 // TYPESCRIPT INTERFACES & TYPES
 // ===================================
 
+// Type for available pages (should match App component)
+type PageType = 'home' | 'login'
+
 interface NavigationProps {
-  // Props for future enhancements (theme, user state, etc.)
+  currentPage: PageType
+  onPageChange: (page: PageType) => void
 }
 
 interface NavigationItem {
@@ -21,12 +25,9 @@ interface NavigationItem {
 // MAIN COMPONENT
 // ===================================
 
-function Navigation(): React.JSX.Element {
+function Navigation({ currentPage, onPageChange }: NavigationProps): React.JSX.Element {
   // Mobile menu toggle state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false)
-  
-  // Current active page state (in a real app, this would come from router)
-  const [activePage, setActivePage] = useState<string>('home')
 
   // Navigation items configuration
   const navigationItems: readonly NavigationItem[] = [
@@ -35,28 +36,23 @@ function Navigation(): React.JSX.Element {
       label: 'Home',
       href: '#',
       onClick: () => handleNavigation('home'),
-      isActive: activePage === 'home'
+      isActive: currentPage === 'home'
     },
     {
       id: 'login',
       label: 'Login',
       href: '#',
       onClick: () => handleNavigation('login'),
-      isActive: activePage === 'login'
+      isActive: currentPage === 'login'
     }
   ] as const
 
   // Event Handlers
-  const handleNavigation = (pageId: string): void => {
-    setActivePage(pageId)
+  const handleNavigation = (pageId: PageType): void => {
+    onPageChange(pageId) // Use the callback from App component
     setIsMobileMenuOpen(false) // Close mobile menu on navigation
     
-    // Log navigation for now (future: implement actual routing)
-    console.log(`Navigating to: ${pageId}`)
-    
-    if (pageId === 'login') {
-      console.log('Login page will be implemented later')
-    }
+    console.log(`Navigation: Changed to ${pageId} page`)
   }
 
   const toggleMobileMenu = (): void => {

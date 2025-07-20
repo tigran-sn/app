@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/contexts/AuthContext'
 import { ROUTES } from '@/routes'
 import styles from './Login.module.css'
 
@@ -12,12 +13,12 @@ interface LoginProps {
 }
 
 interface LoginFormData {
-  email: string
+  username: string
   password: string
 }
 
 interface FormErrors {
-  email?: string
+  username?: string
   password?: string
   general?: string
 }
@@ -30,7 +31,7 @@ interface ValidationRule {
 }
 
 interface ValidationRules {
-  email: ValidationRule[]
+  username: ValidationRule[]
   password: ValidationRule[]
 }
 
@@ -39,12 +40,9 @@ interface ValidationRules {
 // ===================================
 
 const validationRules: ValidationRules = {
-  email: [
-    { required: true, message: 'Email is required' },
-    { 
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 
-      message: 'Please enter a valid email address' 
-    }
+  username: [
+    { required: true, message: 'Username is required' },
+    { minLength: 3, message: 'Username must be at least 3 characters long' }
   ],
   password: [
     { required: true, message: 'Password is required' },
@@ -57,17 +55,17 @@ const validationRules: ValidationRules = {
 // ===================================
 
 function Login(): React.JSX.Element {
+  const navigate = useNavigate()
+  const { login, error: authError, isLoading, clearError } = useAuth()
+
   // Form state
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
+    username: '',
     password: ''
   })
 
   // Error state
   const [errors, setErrors] = useState<FormErrors>({})
-
-  // Loading state
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   // Validation helper function
   const validateField = (fieldName: keyof LoginFormData, value: string): string | undefined => {
@@ -131,37 +129,31 @@ function Login(): React.JSX.Element {
       return
     }
     
-    setIsSubmitting(true)
+    // Clear any previous errors
     setErrors({})
+    clearError()
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      console.log('🔐 Submitting login form for user:', formData.username)
       
-      // For now, just log the form data
-      console.log('Login attempt:', {
-        email: formData.email,
-        password: '***hidden***'
+      // Call the authentication service
+      await login({
+        username: formData.username,
+        password: formData.password
       })
       
-      // Simulate different outcomes based on email
-      if (formData.email === 'admin@example.com') {
-        console.log('Login successful!')
-        alert('Login successful! Welcome, admin!')
-        // Future: Redirect to dashboard or update auth state
-      } else {
-        setErrors({
-          general: 'Invalid email or password. Try admin@example.com'
-        })
-      }
+      console.log('✅ Login successful, redirecting to home')
+      
+      // Redirect to home page after successful login
+      navigate(ROUTES.HOME)
       
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('❌ Login form submission failed:', error)
+      
+      // Error is already handled by auth context, but we can add form-specific handling
       setErrors({
-        general: 'An unexpected error occurred. Please try again.'
+        general: authError || 'Login failed. Please check your credentials and try again.'
       })
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -200,26 +192,26 @@ function Login(): React.JSX.Element {
             </div>
           )}
 
-          {/* Email Field */}
+          {/* Username Field */}
           <div className={styles.formGroup}>
-            <label htmlFor="email" className={styles.label}>
-              Email Address
+            <label htmlFor="username" className={styles.label}>
+              Username
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
+              id="username"
+              name="username"
+              type="text"
+              value={formData.username}
               onChange={handleInputChange}
-              className={getInputClasses('email')}
-              placeholder="Enter your email"
+              className={getInputClasses('username')}
+              placeholder="Enter your username"
               required
-              aria-describedby={errors.email ? 'email-error' : undefined}
-              autoComplete="email"
+              aria-describedby={errors.username ? 'username-error' : undefined}
+              autoComplete="username"
             />
-            {errors.email && (
-              <div id="email-error" className={styles.errorMessage} role="alert">
-                {errors.email}
+            {errors.username && (
+              <div id="username-error" className={styles.errorMessage} role="alert">
+                {errors.username}
               </div>
             )}
           </div>
@@ -252,10 +244,10 @@ function Login(): React.JSX.Element {
           <button
             type="submit"
             className={styles.submitButton}
-            disabled={isSubmitting}
-            aria-label={isSubmitting ? 'Signing in...' : 'Sign in to your account'}
+            disabled={isLoading}
+            aria-label={isLoading ? 'Signing in...' : 'Sign in to your account'}
           >
-            {isSubmitting ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
@@ -277,7 +269,7 @@ function Login(): React.JSX.Element {
             </Link>
           </p>
           <p className={styles.footerText} style={{ marginTop: 'var(--spacing-4)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
-            💡 Try: admin@example.com with any password
+            💡 Enter your TradeCloud credentials to login
           </p>
         </div>
       </div>

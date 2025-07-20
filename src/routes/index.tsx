@@ -1,6 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import App from '@/components/App'
-import { Home, Login, SignUp, NotFound } from '@/pages'
+import { Home, Login, SignUp, Dashboard, NotFound } from '@/pages'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
@@ -28,14 +28,14 @@ const routes: AppRoute[] = [
   {
     path: '/',
     element: <App />,
-    errorElement: <NotFound />,
     children: [
       {
-        index: true, // This makes it the default route for "/"
+        index: true,
         element: <Home />,
         metadata: {
           title: 'Home - React Learning',
-          description: 'Welcome to your React learning journey'
+          description: 'Welcome to your React learning journey',
+          requiresAuth: false
         }
       },
       {
@@ -54,6 +54,15 @@ const routes: AppRoute[] = [
           title: 'Sign Up - React Learning',
           description: 'Create your account to start learning',
           requiresAuth: false
+        }
+      },
+      {
+        path: 'dashboard',
+        element: <Dashboard />,
+        metadata: {
+          title: 'Dashboard - React Learning',
+          description: 'Your personal dashboard',
+          requiresAuth: true
         }
       }
     ]
@@ -81,6 +90,7 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   SIGNUP: '/signup',
+  DASHBOARD: '/dashboard'
 } as const
 
 // Type for route paths

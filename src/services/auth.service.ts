@@ -127,7 +127,7 @@ export const jwtUtils = {
         firstName: payload.given_name || payload.first_name || '',
         lastName: payload.family_name || payload.last_name || '',
         role: payload.role || payload.roles?.[0] || 'user',
-        permissions: payload.permissions || payload.scope?.split(' ') || []
+        permissions: payload.permissions || payload.scope || []
       }
     } catch (error) {
       console.error('Error extracting user from token:', error)

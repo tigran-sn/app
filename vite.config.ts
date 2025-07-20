@@ -32,7 +32,7 @@ export default defineConfig({
   
   // Development server configuration
   server: {
-    port: 5173,
+    port: 4201,
     host: true, // Allow external connections
     open: true, // Open browser automatically
   },

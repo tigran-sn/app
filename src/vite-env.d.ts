@@ -30,9 +30,19 @@ declare module '*.webp' {
   export default content
 }
 
-// CSS modules declaration
+// CSS modules declaration with proper TypeScript support
 declare module '*.module.css' {
-  const classes: { readonly [key: string]: string }
+  const classes: Readonly<Record<string, string>>
+  export default classes
+}
+
+declare module '*.module.scss' {
+  const classes: Readonly<Record<string, string>>
+  export default classes
+}
+
+declare module '*.module.sass' {
+  const classes: Readonly<Record<string, string>>
   export default classes
 }
 

@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ROUTES } from '@/routes'
 import styles from './Login.module.css'
 
 // ===================================
@@ -168,10 +170,7 @@ function Login(): React.JSX.Element {
     alert('Forgot password functionality will be implemented later!')
   }
 
-  const handleSignUp = (): void => {
-    console.log('Sign up clicked')
-    alert('Sign up functionality will be implemented later!')
-  }
+  // Note: handleSignUp is no longer needed as we use Link component
 
   // Helper function to get input classes
   const getInputClasses = (fieldName: keyof FormErrors): string => {
@@ -273,13 +272,9 @@ function Login(): React.JSX.Element {
           </p>
           <p className={styles.footerText}>
             Don't have an account?{' '}
-            <button
-              type="button"
-              onClick={handleSignUp}
-              className={styles.footerLink}
-            >
+            <Link to={ROUTES.SIGNUP} className={styles.footerLink}>
               Sign up here
-            </button>
+            </Link>
           </p>
           <p className={styles.footerText} style={{ marginTop: 'var(--spacing-4)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-tertiary)' }}>
             💡 Try: admin@example.com with any password

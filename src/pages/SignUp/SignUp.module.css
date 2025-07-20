@@ -1,0 +1,350 @@
+/* ===================================
+   SIGN UP PAGE STYLES - COMPREHENSIVE FORM
+   =================================== */
+
+.container {
+  min-height: calc(100vh - 64px); /* Full height minus navbar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8);
+  background: linear-gradient(
+    135deg,
+    var(--color-background) 0%,
+    var(--color-surface-variant) 100%
+  );
+}
+
+.signUpCard {
+  width: 100%;
+  max-width: 450px;
+  background-color: var(--color-surface);
+  border: var(--border-width-1) solid var(--color-border);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-8);
+  transition: all var(--transition-base);
+}
+
+.signUpCard:hover {
+  box-shadow: var(--shadow-2xl);
+  transform: translateY(-2px);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--spacing-8);
+}
+
+.title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.formGroup.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.required {
+  color: var(--color-error);
+  margin-left: var(--spacing-1);
+}
+
+.input {
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  
+  background-color: var(--color-surface);
+  border: var(--border-width-1) solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  
+  transition: all var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:hover {
+  border-color: var(--color-text-secondary);
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input.error {
+  border-color: var(--color-error);
+}
+
+.input.error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input.success {
+  border-color: var(--color-success);
+}
+
+.input.success:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.errorMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.successMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  margin-top: var(--spacing-1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+}
+
+.passwordStrength {
+  margin-top: var(--spacing-2);
+}
+
+.strengthMeter {
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: var(--border-radius-full);
+  overflow: hidden;
+  margin-bottom: var(--spacing-2);
+}
+
+.strengthFill {
+  height: 100%;
+  transition: all var(--transition-base);
+  border-radius: var(--border-radius-full);
+}
+
+.strengthFill.weak {
+  width: 25%;
+  background-color: var(--color-error);
+}
+
+.strengthFill.fair {
+  width: 50%;
+  background-color: var(--color-warning);
+}
+
+.strengthFill.good {
+  width: 75%;
+  background-color: #22c55e;
+}
+
+.strengthFill.strong {
+  width: 100%;
+  background-color: var(--color-success);
+}
+
+.strengthText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.strengthText.weak {
+  color: var(--color-error);
+}
+
+.strengthText.fair {
+  color: var(--color-warning);
+}
+
+.strengthText.good,
+.strengthText.strong {
+  color: var(--color-success);
+}
+
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  margin: var(--spacing-4) 0;
+}
+
+.checkboxInput {
+  margin-top: 2px;
+  accent-color: var(--color-primary-600);
+}
+
+.checkboxLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.checkboxLabel a {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.checkboxLabel a:hover {
+  text-decoration: underline;
+}
+
+.submitButton {
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: inherit;
+  
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  
+  cursor: pointer;
+  transition: all var(--transition-base);
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  
+  margin-top: var(--spacing-2);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--color-neutral-400);
+}
+
+.footer {
+  text-align: center;
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: var(--border-width-1) solid var(--color-border);
+}
+
+.footerText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.footerLink {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
+}
+
+.footerLink:hover {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
+
+/* ===================================
+   RESPONSIVE DESIGN
+   =================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-4);
+  }
+  
+  .signUpCard {
+    padding: var(--spacing-6);
+  }
+  
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .form {
+    gap: var(--spacing-4);
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3);
+  }
+  
+  .checkbox {
+    margin: var(--spacing-3) 0;
+  }
+}
+
+/* ===================================
+   DARK THEME ADJUSTMENTS
+   =================================== */
+
+@media (prefers-color-scheme: dark) {
+  .container {
+    background: linear-gradient(
+      135deg,
+      var(--color-background) 0%,
+      var(--color-surface) 100%
+    );
+  }
+  
+  .footerLink {
+    color: var(--color-primary-400);
+  }
+  
+  .footerLink:hover {
+    color: var(--color-primary-300);
+  }
+  
+  .checkboxLabel a {
+    color: var(--color-primary-400);
+  }
+} 

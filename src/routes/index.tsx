@@ -1,6 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
 import App from '@/components/App'
-import { Home, Login, NotFound } from '@/pages'
+import { Home, Login, SignUp, NotFound } from '@/pages'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
@@ -46,6 +46,15 @@ const routes: AppRoute[] = [
           description: 'Sign in to your account',
           requiresAuth: false
         }
+      },
+      {
+        path: 'signup',
+        element: <SignUp />,
+        metadata: {
+          title: 'Sign Up - React Learning',
+          description: 'Create your account to start learning',
+          requiresAuth: false
+        }
       }
     ]
   },
@@ -71,6 +80,7 @@ export const router = createBrowserRouter(routes as RouteObject[])
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
+  SIGNUP: '/signup',
 } as const
 
 // Type for route paths

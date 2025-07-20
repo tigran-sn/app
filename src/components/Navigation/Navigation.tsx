@@ -42,6 +42,12 @@ function Navigation(): React.JSX.Element {
       label: 'Login',
       to: ROUTES.LOGIN,
       isActive: location.pathname === ROUTES.LOGIN
+    },
+    {
+      id: 'signup',
+      label: 'Sign Up',
+      to: ROUTES.SIGNUP,
+      isActive: location.pathname === ROUTES.SIGNUP
     }
   ] as const
 

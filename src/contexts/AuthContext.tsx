@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { AuthState, AuthContextType, LoginCredentials, User } from '@/services/auth.types'
 import { authService, getAuthErrorMessage } from '@/services/auth.service'
+import { ROUTES } from '@/routes'
 
 // ===================================
 // AUTH REDUCER ACTIONS
@@ -109,6 +111,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
+  const navigate = useNavigate()
 
   // ===================================
   // AUTH METHODS
@@ -159,6 +162,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Update context state
     dispatch({ type: 'LOGOUT' })
+    
+    // Redirect to home page
+    console.log('↩️ Redirecting to home page after logout')
+    navigate(ROUTES.HOME)
   }
 
   const refreshToken = async (): Promise<void> => {
@@ -168,6 +175,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const clearError = (): void => {
     dispatch({ type: 'CLEAR_ERROR' })
+  }
+
+  // Helper function to handle expired sessions
+  const handleExpiredSession = (): void => {
+    console.log('⏰ Session expired, logging out and redirecting to home')
+    authService.logout()
+    dispatch({ type: 'LOGOUT' })
+    navigate(ROUTES.HOME)
   }
 
   // ===================================
@@ -192,19 +207,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             })
           } else {
             console.log('⚠️ Invalid stored session data, clearing...')
-            authService.logout()
+            handleExpiredSession()
           }
         } else {
           console.log('ℹ️ No existing session found')
         }
       } catch (error) {
         console.error('❌ Error restoring session:', error)
-        authService.logout()
+        handleExpiredSession()
       }
     }
 
     restoreSession()
-  }, [])
+  }, [navigate])
 
   // ===================================
   // CONTEXT VALUE

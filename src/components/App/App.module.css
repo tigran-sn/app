@@ -1,246 +1,42 @@
 /* ===================================
-   APP COMPONENT STYLES - CSS MODULES
-   =================================== */
+   APP COMPONENT STYLES
+   ===================================
+   Main application layout container
+   ================================== */
 
-.root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--spacing-8);
-  text-align: center;
-}
-
-.logoContainer {
+.app {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-8);
+  flex-direction: column;
+  background: var(--color-background);
 }
 
-.logo {
-  height: 6em;
-  padding: var(--spacing-6);
-  transition: filter var(--transition-slow);
-  will-change: filter;
-}
-
-.logo:hover {
-  filter: drop-shadow(0 0 2em var(--color-primary-500));
-}
-
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-.title {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-8);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-600),
-    var(--color-primary-400)
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-size: 200% 200%;
-  animation: gradient 3s ease infinite;
-}
-
-.card {
-  padding: var(--spacing-8);
-  background-color: var(--color-surface);
-  border: var(--border-width-1) solid var(--color-border);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-lg);
-  margin-bottom: var(--spacing-8);
-  transition: all var(--transition-base);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-xl);
-  transform: translateY(-2px);
-  border-color: var(--color-border-focus);
-}
-
-.countButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  
-  padding: var(--spacing-4) var(--spacing-8);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-500),
-    var(--color-primary-600)
-  );
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-xl);
-  
-  cursor: pointer;
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.countButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
+.main {
+  flex: 1;
   width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: left var(--transition-slow);
-}
-
-.countButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    var(--shadow-lg),
-    0 0 20px rgba(59, 130, 246, 0.4);
-}
-
-.countButton:hover::before {
-  left: 100%;
-}
-
-.countButton:active {
-  transform: translateY(0);
-}
-
-/* Count level variants */
-.countButton.countLow {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-}
-
-.countButton.countMedium {
-  background: linear-gradient(135deg, var(--color-warning), #f59e0b);
-}
-
-.countButton.countHigh {
-  background: linear-gradient(135deg, var(--color-error), #dc2626);
-}
-
-.countButton.countExtreme {
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  animation: pulse 2s infinite;
-}
-
-.description {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
-  margin-top: var(--spacing-4);
-}
-
-.readTheDocs {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-  margin-top: var(--spacing-8);
+  overflow-x: auto;
 }
 
 /* ===================================
-   ANIMATIONS
-   =================================== */
+   RESPONSIVE DESIGN
+   ================================== */
 
-@keyframes logoSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 
-      var(--shadow-lg),
-      0 0 20px rgba(124, 58, 237, 0.4);
-  }
-  50% {
-    box-shadow: 
-      var(--shadow-xl),
-      0 0 30px rgba(124, 58, 237, 0.6);
+@media (min-width: 768px) {
+  .main {
+    overflow-x: visible;
   }
 }
 
 /* ===================================
-   RESPONSIVE DESIGN & ACCESSIBILITY
-   =================================== */
-
-@media (prefers-reduced-motion: no-preference) {
-  .logo.react {
-    animation: logoSpin infinite 20s linear;
-  }
-}
+   ACCESSIBILITY ENHANCEMENTS
+   ================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .title {
-    animation: none;
-    background: var(--color-primary-600);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  .countButton.countExtreme {
-    animation: none;
-  }
-  
-  .logo {
-    animation: none !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .root {
-    padding: var(--spacing-4);
-  }
-  
-  .logoContainer {
-    flex-direction: column;
-    gap: var(--spacing-2);
-  }
-  
-  .logo {
-    height: 4em;
-    padding: var(--spacing-3);
-  }
-  
-  .title {
-    font-size: var(--font-size-2xl);
-  }
-  
-  .card {
-    padding: var(--spacing-4);
-  }
-  
-  .countButton {
-    padding: var(--spacing-3) var(--spacing-6);
-    font-size: var(--font-size-base);
+  .app *,
+  .app *::before,
+  .app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 } 

@@ -80,9 +80,13 @@ function Navigation(): React.JSX.Element {
   }
 
   const handleLogout = (): void => {
-    console.log('🚪 User requested logout')
-    logout()
+    console.log('🚪 User requested logout from navigation')
+    
+    // Close mobile menu first
     setIsMobileMenuOpen(false)
+    
+    // Call logout (navigation handled by AuthContext)
+    logout()
   }
 
   // ===================================

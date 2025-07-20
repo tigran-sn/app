@@ -1,5 +1,7 @@
 import { Outlet } from 'react-router-dom'
+import { AuthProvider } from '@/contexts/AuthContext'
 import Navigation from '@/components/Navigation'
+import styles from './App.module.css'
 
 // ===================================
 // TYPESCRIPT INTERFACES & TYPES
@@ -15,15 +17,17 @@ interface AppProps {
 
 function App(): React.JSX.Element {
   return (
-    <div>
-      {/* Navigation - no longer needs props, uses React Router internally */}
-      <Navigation />
-      
-      {/* Main application content - rendered by React Router */}
-      <main role="main">
-        <Outlet />
-      </main>
-    </div>
+    <AuthProvider>
+      <div className={styles.app}>
+        {/* Global Navigation */}
+        <Navigation />
+        
+        {/* Main Content Area */}
+        <main className={styles.main}>
+          <Outlet />
+        </main>
+      </div>
+    </AuthProvider>
   )
 }
 

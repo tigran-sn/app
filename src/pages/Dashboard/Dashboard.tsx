@@ -10,6 +10,8 @@ function Dashboard(): React.JSX.Element {
 
   const handleLogout = (): void => {
     console.log('🚪 User logout requested from dashboard')
+    
+    // Call logout (navigation handled by AuthContext)
     logout()
   }
 

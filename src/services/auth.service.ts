@@ -1,4 +1,13 @@
-import type { TokenRequest, TokenResponse, LoginCredentials, User, ApiError } from './auth.types'
+import type { 
+  TokenRequest, 
+  TokenResponse, 
+  LoginCredentials, 
+  User, 
+  UserProfileResponse,
+  ApiError,
+  AuthApiErrorData,
+  JwtPayload
+} from './auth.types'
 
 // ===================================
 // API CONFIGURATION
@@ -6,64 +15,120 @@ import type { TokenRequest, TokenResponse, LoginCredentials, User, ApiError } fr
 
 const AUTH_CONFIG = {
   TOKEN_ENDPOINT: 'https://tcwauth.tradecloud1.net/connect/token',
+  USER_PROFILE_ENDPOINT: 'https://tcwapi.tradecloud1.net/api/user/current',
   CLIENT_ID: 'web_client',
   GRANT_TYPE: 'password',
   CLIENT_SECRET: 'secret',
   SCOPE: 'api openid chat'
 } as const
 
+// Storage keys for localStorage
+const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'tcw_access_token',
+  USER_DATA: 'tcw_user_data',
+  TOKEN_EXPIRY: 'tcw_token_expiry'
+} as const
+
 // ===================================
 // TOKEN STORAGE UTILITIES
 // ===================================
 
-const TOKEN_STORAGE_KEY = 'auth_token'
-const REFRESH_TOKEN_STORAGE_KEY = 'refresh_token'
-const USER_STORAGE_KEY = 'user_data'
-
 export const tokenStorage = {
-  // Store authentication token
-  setToken: (token: string): void => {
-    localStorage.setItem(TOKEN_STORAGE_KEY, token)
-  },
-
-  // Get stored token
-  getToken: (): string | null => {
-    return localStorage.getItem(TOKEN_STORAGE_KEY)
-  },
-
-  // Store refresh token
-  setRefreshToken: (refreshToken: string): void => {
-    localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
-  },
-
-  // Get stored refresh token
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)
-  },
-
-  // Store user data
-  setUser: (user: User): void => {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user))
-  },
-
-  // Get stored user data
-  getUser: (): User | null => {
-    const userData = localStorage.getItem(USER_STORAGE_KEY)
-    if (!userData) return null
-    
+  get: (): string | null => {
     try {
-      return JSON.parse(userData) as User
+      return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)
     } catch (error) {
-      console.error('Error parsing stored user data:', error)
+      console.error('Failed to get token from storage:', error)
       return null
     }
   },
 
-  // Clear all stored authentication data
-  clearAll: (): void => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
-    localStorage.removeItem(USER_STORAGE_KEY)
+  set: (token: string): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
+    } catch (error) {
+      console.error('Failed to store token:', error)
+    }
+  },
+
+  remove: (): void => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN)
+    } catch (error) {
+      console.error('Failed to remove token:', error)
+    }
+  },
+
+  exists: (): boolean => {
+    return !!tokenStorage.get()
+  }
+}
+
+// ===================================
+// USER DATA STORAGE UTILITIES
+// ===================================
+
+export const userStorage = {
+  get: (): User | null => {
+    try {
+      const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA)
+      if (!userData) return null
+      
+      const parsed = JSON.parse(userData) as UserProfileResponse
+      return transformUserProfile(parsed)
+    } catch (error) {
+      console.error('Failed to get user data from storage:', error)
+      return null
+    }
+  },
+
+  set: (user: User): void => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user))
+    } catch (error) {
+      console.error('Failed to store user data:', error)
+    }
+  },
+
+  remove: (): void => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA)
+    } catch (error) {
+      console.error('Failed to remove user data:', error)
+    }
+  }
+}
+
+// ===================================
+// TOKEN EXPIRY UTILITIES
+// ===================================
+
+export const tokenExpiryStorage = {
+  get: (): Date | null => {
+    try {
+      const expiry = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY)
+      return expiry ? new Date(expiry) : null
+    } catch (error) {
+      console.error('Failed to get token expiry:', error)
+      return null
+    }
+  },
+
+  set: (expiresIn: number): void => {
+    try {
+      const expiryDate = new Date(Date.now() + expiresIn * 1000)
+      localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiryDate.toISOString())
+    } catch (error) {
+      console.error('Failed to store token expiry:', error)
+    }
+  },
+
+  remove: (): void => {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY)
+    } catch (error) {
+      console.error('Failed to remove token expiry:', error)
+    }
   }
 }
 
@@ -72,162 +137,241 @@ export const tokenStorage = {
 // ===================================
 
 export const jwtUtils = {
-  // Parse JWT token payload (basic parsing without verification)
-  parseToken: (token: string): any => {
+  decode: (token: string): JwtPayload | null => {
     try {
       const parts = token.split('.')
       if (parts.length !== 3) {
         throw new Error('Invalid JWT format')
       }
-      
-      const base64Url = parts[1]
-      if (!base64Url) {
+
+      const payload = parts[1]
+      if (!payload) {
         throw new Error('Invalid JWT payload')
       }
       
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      )
-      return JSON.parse(jsonPayload)
+      const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+      return JSON.parse(decoded) as JwtPayload
     } catch (error) {
-      console.error('Error parsing JWT token:', error)
+      console.error('Failed to decode JWT token:', error)
       return null
     }
   },
 
-  // Check if token is expired
-  isTokenExpired: (token: string): boolean => {
+  isExpired: (token: string): boolean => {
     try {
-      const payload = jwtUtils.parseToken(token)
-      if (!payload || !payload.exp) return true
-      
+      const payload = jwtUtils.decode(token)
+      if (!payload || !payload.exp) {
+        return true
+      }
+
       const currentTime = Math.floor(Date.now() / 1000)
       return payload.exp < currentTime
     } catch (error) {
+      console.error('Failed to check token expiry:', error)
       return true
     }
   },
 
-  // Extract user data from JWT token
-  extractUserFromToken: (token: string): User | null => {
+  getExpiryDate: (token: string): Date | null => {
     try {
-      const payload = jwtUtils.parseToken(token)
-      if (!payload) return null
-
-      // Map JWT claims to User interface
-      // Note: Adjust these mappings based on actual token structure
-      return {
-        id: payload.sub || payload.user_id || payload.id || 'unknown',
-        email: payload.email || payload.preferred_username || '',
-        username: payload.preferred_username || payload.username || payload.email || '',
-        firstName: payload.given_name || payload.first_name || '',
-        lastName: payload.family_name || payload.last_name || '',
-        role: payload.role || payload.roles?.[0] || 'user',
-        permissions: payload.permissions || payload.scope || []
+      const payload = jwtUtils.decode(token)
+      if (!payload || !payload.exp) {
+        return null
       }
+
+      return new Date(payload.exp * 1000)
     } catch (error) {
-      console.error('Error extracting user from token:', error)
+      console.error('Failed to get token expiry date:', error)
       return null
     }
   }
 }
 
 // ===================================
-// HTTP CLIENT WITH ERROR HANDLING
+// API ERROR HANDLING
 // ===================================
 
 class AuthApiError extends Error {
+  public status: number
+  public code?: string
+  public details?: Record<string, any>
+
   constructor(
-    message: string,
-    public status?: number,
-    public code?: string,
-    public details?: any
+    message: string, 
+    status: number, 
+    code?: string, 
+    details?: Record<string, any>
   ) {
     super(message)
     this.name = 'AuthApiError'
-  }
-}
-
-const httpClient = {
-  // Make OAuth2 token request
-  postFormData: async (url: string, data: Record<string, string>): Promise<any> => {
-    try {
-      // Create URLSearchParams for form-encoded data
-      const formData = new URLSearchParams()
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, value)
-      })
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-        body: formData.toString()
-      })
-
-      // Parse response
-      const responseData = await response.json()
-
-      // Handle HTTP errors
-      if (!response.ok) {
-        const errorMessage = responseData.error_description || 
-                           responseData.message || 
-                           responseData.error || 
-                           `HTTP ${response.status}: ${response.statusText}`
-        
-        throw new AuthApiError(
-          errorMessage,
-          response.status,
-          responseData.error,
-          responseData
-        )
-      }
-
-      return responseData
-    } catch (error) {
-      // Handle network errors
-      if (error instanceof AuthApiError) {
-        throw error
-      }
-
-      // Handle fetch/network errors
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new AuthApiError(
-          'Network error: Please check your internet connection',
-          0,
-          'NETWORK_ERROR',
-          error
-        )
-      }
-
-      // Handle other errors
-      throw new AuthApiError(
-        error instanceof Error ? error.message : 'An unexpected error occurred',
-        0,
-        'UNKNOWN_ERROR',
-        error
-      )
+    this.status = status
+    if (code !== undefined) {
+      this.code = code
+    }
+    if (details !== undefined) {
+      this.details = details
     }
   }
 }
 
 // ===================================
-// AUTHENTICATION API SERVICE
+// HTTP CLIENT UTILITIES
+// ===================================
+
+const httpClient = {
+  // OAuth2 form data request (for token endpoint)
+  postFormData: async (url: string, data: Record<string, string>): Promise<any> => {
+    const formData = new URLSearchParams()
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value)
+    })
+
+    console.log(`🔐 Making OAuth2 request to: ${url}`)
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new AuthApiError(
+        errorData.error_description || errorData.error || 'Authentication failed',
+        response.status,
+        errorData.error,
+        errorData
+      )
+    }
+
+    return response.json()
+  },
+
+  // JSON API request with Bearer token (for user profile endpoint)
+  getWithAuth: async (url: string, token: string): Promise<any> => {
+    console.log(`📡 Making authenticated request to: ${url}`)
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Accept-Language': 'en',
+        'Cache-Control': 'no-cache',
+        'Origin': 'https://tcw.tradecloud1.net'
+      }
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new AuthApiError(
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+        response.status,
+        errorData.code,
+        errorData
+      )
+    }
+
+    return response.json()
+  }
+}
+
+// ===================================
+// USER DATA TRANSFORMATION
+// ===================================
+
+const transformUserProfile = (profileData: UserProfileResponse): User => {
+  const getDisplayName = (): string => {
+    if (profileData.fullName) return profileData.fullName
+    if (profileData.firstName && profileData.lastName) {
+      return `${profileData.firstName} ${profileData.lastName}`
+    }
+    if (profileData.firstName) return profileData.firstName
+    return profileData.username || profileData.email || 'User'
+  }
+
+  const getInitials = (): string => {
+    const displayName = getDisplayName()
+    return displayName
+      .split(' ')
+      .map(name => name.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('')
+  }
+
+  const hasRole = (role: string): boolean => {
+    return profileData.roles ? profileData.roles.includes(role) : false
+  }
+
+  const hasPermission = (permission: string): boolean => {
+    return profileData.permissions ? profileData.permissions.includes(permission) : false
+  }
+
+  // Build the user object with only defined optional properties
+  const user: User = {
+    id: profileData.id,
+    username: profileData.username,
+    email: profileData.email,
+    // Computed properties (always required)
+    displayName: getDisplayName(),
+    initials: getInitials(),
+    hasRole,
+    hasPermission
+  }
+
+  // Add optional properties only if they have values
+  if (profileData.firstName) {
+    user.firstName = profileData.firstName
+  }
+  
+  if (profileData.lastName) {
+    user.lastName = profileData.lastName
+  }
+  
+  if (profileData.fullName) {
+    user.fullName = profileData.fullName
+  }
+  
+  if (profileData.platform) {
+    user.platform = profileData.platform
+  }
+  
+  if (profileData.locale) {
+    user.locale = profileData.locale
+  }
+  
+  if (profileData.roles && profileData.roles.length > 0) {
+    user.roles = profileData.roles
+  }
+  
+  if (profileData.permissions && profileData.permissions.length > 0) {
+    user.permissions = profileData.permissions
+  }
+  
+  if (profileData.isActive !== undefined) {
+    user.isActive = profileData.isActive
+  }
+  
+  if (profileData.lastLoginAt) {
+    user.lastLoginAt = profileData.lastLoginAt
+  }
+
+  return user
+}
+
+// ===================================
+// MAIN AUTHENTICATION SERVICE
 // ===================================
 
 export const authService = {
-  // Login with username and password
+  // Step 1: Login to get access token
   login: async (credentials: LoginCredentials): Promise<TokenResponse> => {
-    console.log('🔐 Attempting login for user:', credentials.username)
-
-    // Prepare OAuth2 token request
+    console.log('🔐 Starting authentication flow...')
+    
     const tokenRequest: TokenRequest = {
       username: credentials.username,
       password: credentials.password,
@@ -237,120 +381,167 @@ export const authService = {
       scope: AUTH_CONFIG.SCOPE
     }
 
-    try {
-      // Make API request (convert to Record<string, string> for form data)
-      const formDataPayload: Record<string, string> = {
-        username: tokenRequest.username,
-        password: tokenRequest.password,
-        client_id: tokenRequest.client_id,
-        grant_type: tokenRequest.grant_type,
-        client_secret: tokenRequest.client_secret,
-        scope: tokenRequest.scope
-      }
-      const response = await httpClient.postFormData(AUTH_CONFIG.TOKEN_ENDPOINT, formDataPayload)
-      
-      console.log('✅ Login successful, received token response')
-      
-      // Validate response structure
-      if (!response.access_token) {
-        throw new AuthApiError('Invalid response: missing access_token', 0, 'INVALID_RESPONSE')
-      }
+    // Create form data payload
+    const formDataPayload: Record<string, string> = {
+      username: tokenRequest.username,
+      password: tokenRequest.password,
+      client_id: tokenRequest.client_id,
+      grant_type: tokenRequest.grant_type,
+      client_secret: tokenRequest.client_secret,
+      scope: tokenRequest.scope
+    }
 
-      return response as TokenResponse
+    try {
+      const tokenResponse = await httpClient.postFormData(
+        AUTH_CONFIG.TOKEN_ENDPOINT, 
+        formDataPayload
+      )
+
+      console.log('✅ Token received successfully')
+      return tokenResponse as TokenResponse
     } catch (error) {
-      console.error('❌ Login failed:', error)
-      
-      // Re-throw with user-friendly messages
-      if (error instanceof AuthApiError) {
-        throw error
-      }
-      
-      throw new AuthApiError('Login failed due to an unexpected error')
+      console.error('❌ Token request failed:', error)
+      throw error
     }
   },
 
-  // Process successful login (store tokens, extract user)
-  processLoginSuccess: (tokenResponse: TokenResponse): User => {
-    console.log('📦 Processing login success, storing tokens')
+  // Step 2: Get user profile using the token
+  getUserProfile: async (token: string): Promise<UserProfileResponse> => {
+    console.log('👤 Fetching user profile...')
+    
+    try {
+      const profileResponse = await httpClient.getWithAuth(
+        AUTH_CONFIG.USER_PROFILE_ENDPOINT,
+        token
+      )
 
-    // Store tokens
-    tokenStorage.setToken(tokenResponse.access_token)
-    if (tokenResponse.refresh_token) {
-      tokenStorage.setRefreshToken(tokenResponse.refresh_token)
+      console.log('✅ User profile received successfully')
+      return profileResponse as UserProfileResponse
+    } catch (error) {
+      console.error('❌ User profile request failed:', error)
+      throw error
     }
+  },
 
-    // Extract user from token
-    const user = jwtUtils.extractUserFromToken(tokenResponse.access_token)
-    if (!user) {
-      throw new AuthApiError('Failed to extract user information from token')
-    }
-
-    // Store user data
-    tokenStorage.setUser(user)
-
-    console.log('👤 User extracted from token:', { 
-      id: user.id, 
-      username: user.username, 
-      email: user.email 
-    })
-
+  // Complete login flow: token + user profile
+  completeLogin: async (credentials: LoginCredentials): Promise<User> => {
+    console.log('🚀 Starting complete login flow...')
+    
+    // Step 1: Get access token
+    const tokenResponse = await authService.login(credentials)
+    
+    // Step 2: Get user profile
+    const userProfile = await authService.getUserProfile(tokenResponse.access_token)
+    
+    // Step 3: Store token and calculate expiry
+    tokenStorage.set(tokenResponse.access_token)
+    tokenExpiryStorage.set(tokenResponse.expires_in)
+    
+    // Step 4: Transform and store user data
+    const user = transformUserProfile(userProfile)
+    userStorage.set(user)
+    
+    console.log('🎉 Complete login flow successful')
     return user
   },
 
-  // Logout (clear stored data)
+  // Refresh user profile (for when user data might have changed)
+  refreshUserProfile: async (): Promise<User> => {
+    console.log('🔄 Refreshing user profile...')
+    
+    const token = tokenStorage.get()
+    if (!token) {
+      throw new AuthApiError('No access token available', 401)
+    }
+
+    const userProfile = await authService.getUserProfile(token)
+    const user = transformUserProfile(userProfile)
+    userStorage.set(user)
+    
+    console.log('✅ User profile refreshed successfully')
+    return user
+  },
+
+  // Logout and clean up all stored data
   logout: (): void => {
-    console.log('🚪 Logging out user')
-    tokenStorage.clearAll()
+    console.log('👋 Logging out user...')
+    
+    tokenStorage.remove()
+    userStorage.remove()
+    tokenExpiryStorage.remove()
+    
+    console.log('✅ Logout completed - all data cleared')
   },
 
   // Check if user is currently authenticated
   isAuthenticated: (): boolean => {
-    const token = tokenStorage.getToken()
-    if (!token) return false
+    const token = tokenStorage.get()
+    const user = userStorage.get()
+    
+    if (!token || !user) {
+      return false
+    }
 
     // Check if token is expired
-    if (jwtUtils.isTokenExpired(token)) {
-      console.log('⏰ Token expired, clearing stored data')
-      tokenStorage.clearAll()
+    if (jwtUtils.isExpired(token)) {
+      console.log('🕐 Token expired - user no longer authenticated')
+      authService.logout() // Clean up expired session
       return false
     }
 
     return true
   },
 
-  // Get current user from storage
+  // Get currently logged-in user
   getCurrentUser: (): User | null => {
-    if (!authService.isAuthenticated()) return null
-    return tokenStorage.getUser()
+    if (!authService.isAuthenticated()) {
+      return null
+    }
+    
+    return userStorage.get()
   },
 
-  // Get current token
+  // Get current access token
   getCurrentToken: (): string | null => {
-    if (!authService.isAuthenticated()) return null
-    return tokenStorage.getToken()
+    if (!authService.isAuthenticated()) {
+      return null
+    }
+    
+    return tokenStorage.get()
   }
 }
 
 // ===================================
-// ERROR HANDLING UTILITIES
+// ERROR MESSAGE UTILITIES
 // ===================================
 
 export const getAuthErrorMessage = (error: any): string => {
   if (error instanceof AuthApiError) {
-    return error.message
+    switch (error.status) {
+      case 400:
+        return 'Invalid username or password. Please check your credentials.'
+      case 401:
+        return 'Authentication failed. Please check your username and password.'
+      case 403:
+        return 'Access denied. You do not have permission to access this application.'
+      case 404:
+        return 'Authentication service not found. Please try again later.'
+      case 429:
+        return 'Too many login attempts. Please wait a few minutes before trying again.'
+      case 500:
+        return 'Server error occurred. Please try again later.'
+      case 502:
+      case 503:
+      case 504:
+        return 'Service temporarily unavailable. Please try again later.'
+      default:
+        return error.message || 'An unexpected error occurred during authentication.'
+    }
   }
 
-  if (error?.response?.data?.error_description) {
-    return error.response.data.error_description
+  if (error?.message?.includes('NetworkError') || error?.message?.includes('fetch')) {
+    return 'Network connection error. Please check your internet connection and try again.'
   }
 
-  if (error?.response?.data?.message) {
-    return error.response.data.message
-  }
-
-  if (error?.message) {
-    return error.message
-  }
-
-  return 'An unexpected error occurred during authentication'
+  return 'An unexpected error occurred. Please try again.'
 } 

@@ -22,34 +22,83 @@ export interface TokenResponse {
 }
 
 // ===================================
-// USER PROFILE API TYPES
+// USER PROFILE API TYPES (REAL STRUCTURE)
 // ===================================
 
-// User Profile API Response (from /api/user/current)
-export interface UserProfileResponse {
-  id: string
-  username: string
+// Menu Item structure from API
+export interface MenuItem {
+  key: string
+  path: string | null
+  name: string
+  menuType: number
+  isActive: boolean
+  order: number
+  tab: number
+  isAvailable: boolean
+  id: number
+}
+
+// Profile Picture structure from API
+export interface ProfilePicture {
+  id: number
+  path: string
+  name: string
+  createdById: number
+  fileType: number
+}
+
+// Permission Role structure from API
+export interface PermissionRole {
+  from: number
+  to: number
+  permissionType: number
+  id: number
+}
+
+// Tab structure from API (complex permissions)
+export interface UserTab {
+  action: number
+  roles: PermissionRole[]
+  id: number
+}
+
+// Action structure from API
+export interface UserAction {
+  action: number
+  permissionType: number
+  id: number
+}
+
+// First Admin structure from API
+export interface FirstAdmin {
+  fullName: string
   email: string
-  firstName?: string
-  lastName?: string
-  fullName?: string
-  platform?: string
-  locale?: string
-  roles?: string[]
-  permissions?: string[]
-  isActive?: boolean
-  lastLoginAt?: string
-  createdAt?: string
-  updatedAt?: string
-  // Additional fields that might be present
-  avatar?: string
-  phoneNumber?: string
-  companyId?: string
-  companyName?: string
-  department?: string
-  jobTitle?: string
-  timezone?: string
-  preferences?: Record<string, any>
+  createdDate: string
+  id: number
+}
+
+// Real User Profile API Response (from /api/user/current)
+export interface UserProfileResponse {
+  id: number
+  fullName: string
+  email: string
+  title: string
+  isTCConditionsAccepted: boolean
+  menuItems: MenuItem[]
+  picture: ProfilePicture
+  userCompanyIds: number[]
+  tabs: UserTab[]
+  actions: UserAction[]
+  firstAdmin: FirstAdmin
+  culture: string
+  roles: number[]
+}
+
+// API Response Wrapper (all TradeCloud API responses use this structure)
+export interface ApiResponseWrapper<T> {
+  data: T
+  message: string
+  success: boolean
 }
 
 // ===================================
@@ -61,20 +110,28 @@ export interface User {
   id: string
   username: string
   email: string
+  fullName: string
+  title?: string
+  culture?: string
+  roles?: number[]
+  menuItems?: MenuItem[]
+  picture?: ProfilePicture
+  userCompanyIds?: number[]
+  isTCConditionsAccepted?: boolean
+  // Legacy fields for backward compatibility
   firstName?: string
   lastName?: string
-  fullName?: string
   platform?: string
   locale?: string
-  roles?: string[]
   permissions?: string[]
   isActive?: boolean
   lastLoginAt?: string
   // Computed properties
   displayName: string
   initials: string
-  hasRole: (role: string) => boolean
+  hasRole: (role: number) => boolean
   hasPermission: (permission: string) => boolean
+  hasMenuAccess: (menuKey: string) => boolean
 }
 
 // ===================================
@@ -174,4 +231,32 @@ export interface JwtPayload {
   auth_time?: number
   idp?: string
   amr?: string[]
+}
+
+// ===================================
+// MENU AND PERMISSION TYPES
+// ===================================
+
+// Menu types from API
+export enum MenuType {
+  MAIN = 1,
+  POPUP = 2,
+  WORKFLOW = 3
+}
+
+// Permission types from API
+export enum PermissionType {
+  VIEW = 1,
+  EDIT = 2,
+  DELETE = 3,
+  EXECUTE = 4
+}
+
+// Helper type for menu access checking
+export interface MenuAccess {
+  key: string
+  hasAccess: boolean
+  menuType: MenuType
+  isActive: boolean
+  path: string | null
 } 

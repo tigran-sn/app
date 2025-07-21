@@ -4,9 +4,11 @@ import type {
   LoginCredentials, 
   User, 
   UserProfileResponse,
+  ApiResponseWrapper,
   ApiError,
   AuthApiErrorData,
-  JwtPayload
+  JwtPayload,
+  MenuItem
 } from './auth.types'
 
 // ===================================
@@ -74,8 +76,22 @@ export const userStorage = {
       const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA)
       if (!userData) return null
       
-      const parsed = JSON.parse(userData) as UserProfileResponse
-      return transformUserProfile(parsed)
+      const parsed = JSON.parse(userData) as User
+      
+      // Restore functions that were lost during JSON serialization
+      return {
+        ...parsed,
+        hasRole: (role: number): boolean => {
+          return parsed.roles ? parsed.roles.includes(role) : false
+        },
+        hasPermission: (permission: string): boolean => {
+          return parsed.permissions ? parsed.permissions.includes(permission) : false
+        },
+        hasMenuAccess: (menuKey: string): boolean => {
+          return parsed.menuItems ? 
+            parsed.menuItems.some(item => item.key === menuKey && item.isActive && item.isAvailable) : false
+        }
+      }
     } catch (error) {
       console.error('Failed to get user data from storage:', error)
       return null
@@ -84,7 +100,9 @@ export const userStorage = {
 
   set: (user: User): void => {
     try {
-      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user))
+      // Remove functions before storing (they'll be restored on get)
+      const { hasRole, hasPermission, hasMenuAccess, ...serializableUser } = user
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(serializableUser))
     } catch (error) {
       console.error('Failed to store user data:', error)
     }
@@ -252,7 +270,7 @@ const httpClient = {
   },
 
   // JSON API request with Bearer token (for user profile endpoint)
-  getWithAuth: async (url: string, token: string): Promise<any> => {
+  getWithAuth: async (url: string, token: string): Promise<ApiResponseWrapper<UserProfileResponse>> => {
     console.log(`📡 Making authenticated request to: ${url}`)
     
     const response = await fetch(url, {
@@ -276,7 +294,28 @@ const httpClient = {
       )
     }
 
-    return response.json()
+    const responseData = await response.json()
+    
+    // Validate API response wrapper structure
+    if (!responseData || typeof responseData.success !== 'boolean' || !responseData.data) {
+      throw new AuthApiError(
+        'Invalid API response format',
+        500,
+        'INVALID_RESPONSE',
+        responseData
+      )
+    }
+
+    if (!responseData.success) {
+      throw new AuthApiError(
+        responseData.message || 'API request failed',
+        500,
+        'API_ERROR',
+        responseData
+      )
+    }
+
+    return responseData as ApiResponseWrapper<UserProfileResponse>
   }
 }
 
@@ -285,13 +324,23 @@ const httpClient = {
 // ===================================
 
 const transformUserProfile = (profileData: UserProfileResponse): User => {
-  const getDisplayName = (): string => {
-    if (profileData.fullName) return profileData.fullName
-    if (profileData.firstName && profileData.lastName) {
-      return `${profileData.firstName} ${profileData.lastName}`
+  // Create username from email (remove domain) since API doesn't provide username
+  const getUsername = (): string => {
+    if (profileData.email) {
+      const emailParts = profileData.email.split('@')
+      return emailParts[0]?.toLowerCase() || 'user'
     }
-    if (profileData.firstName) return profileData.firstName
-    return profileData.username || profileData.email || 'User'
+    return 'user'
+  }
+
+  const getDisplayName = (): string => {
+    if (profileData.fullName && profileData.fullName.trim()) {
+      return profileData.fullName.trim()
+    }
+    if (profileData.email) {
+      return profileData.email.split('@')[0] || 'User'
+    }
+    return 'User'
   }
 
   const getInitials = (): string => {
@@ -303,61 +352,74 @@ const transformUserProfile = (profileData: UserProfileResponse): User => {
       .join('')
   }
 
-  const hasRole = (role: string): boolean => {
+  // Extract permissions from menuItems
+  const getPermissions = (): string[] => {
+    const permissions: string[] = []
+    
+    profileData.menuItems.forEach(item => {
+      if (item.isActive && item.isAvailable) {
+        permissions.push(item.key)
+        
+        // Add specific permissions based on menu type
+        switch (item.menuType) {
+          case 1: // MAIN
+            permissions.push(`main.${item.key}`)
+            break
+          case 2: // POPUP
+            permissions.push(`popup.${item.key}`)
+            break
+          case 3: // WORKFLOW
+            permissions.push(`workflow.${item.key}`)
+            break
+        }
+      }
+    })
+    
+    return [...new Set(permissions)] // Remove duplicates
+  }
+
+  const hasRole = (role: number): boolean => {
     return profileData.roles ? profileData.roles.includes(role) : false
   }
 
   const hasPermission = (permission: string): boolean => {
-    return profileData.permissions ? profileData.permissions.includes(permission) : false
+    const permissions = getPermissions()
+    return permissions.includes(permission)
   }
 
-  // Build the user object with only defined optional properties
+  const hasMenuAccess = (menuKey: string): boolean => {
+    return profileData.menuItems.some(item => 
+      item.key === menuKey && item.isActive && item.isAvailable
+    )
+  }
+
+  // Build the user object with required fields
   const user: User = {
-    id: profileData.id,
-    username: profileData.username,
+    id: profileData.id.toString(), // Convert number to string for consistency
+    username: getUsername(),
     email: profileData.email,
-    // Computed properties (always required)
+    fullName: profileData.fullName,
+    title: profileData.title,
+    culture: profileData.culture,
+    roles: profileData.roles,
+    menuItems: profileData.menuItems,
+    picture: profileData.picture,
+    userCompanyIds: profileData.userCompanyIds,
+    isTCConditionsAccepted: profileData.isTCConditionsAccepted,
+    
+    // Computed fields
     displayName: getDisplayName(),
     initials: getInitials(),
+    permissions: getPermissions(),
+    
+    // Helper functions
     hasRole,
-    hasPermission
-  }
-
-  // Add optional properties only if they have values
-  if (profileData.firstName) {
-    user.firstName = profileData.firstName
-  }
-  
-  if (profileData.lastName) {
-    user.lastName = profileData.lastName
-  }
-  
-  if (profileData.fullName) {
-    user.fullName = profileData.fullName
-  }
-  
-  if (profileData.platform) {
-    user.platform = profileData.platform
-  }
-  
-  if (profileData.locale) {
-    user.locale = profileData.locale
-  }
-  
-  if (profileData.roles && profileData.roles.length > 0) {
-    user.roles = profileData.roles
-  }
-  
-  if (profileData.permissions && profileData.permissions.length > 0) {
-    user.permissions = profileData.permissions
-  }
-  
-  if (profileData.isActive !== undefined) {
-    user.isActive = profileData.isActive
-  }
-  
-  if (profileData.lastLoginAt) {
-    user.lastLoginAt = profileData.lastLoginAt
+    hasPermission,
+    hasMenuAccess,
+    
+    // Legacy compatibility fields
+    isActive: true, // Assume active if they can login
+    locale: profileData.culture
   }
 
   return user
@@ -410,13 +472,21 @@ export const authService = {
     console.log('👤 Fetching user profile...')
     
     try {
-      const profileResponse = await httpClient.getWithAuth(
+      const response = await httpClient.getWithAuth(
         AUTH_CONFIG.USER_PROFILE_ENDPOINT,
         token
       )
 
       console.log('✅ User profile received successfully')
-      return profileResponse as UserProfileResponse
+      console.log('📊 Profile data preview:', {
+        id: response.data.id,
+        fullName: response.data.fullName,
+        email: response.data.email,
+        roles: response.data.roles,
+        menuItemsCount: response.data.menuItems.length
+      })
+      
+      return response.data
     } catch (error) {
       console.error('❌ User profile request failed:', error)
       throw error
@@ -442,6 +512,16 @@ export const authService = {
     userStorage.set(user)
     
     console.log('🎉 Complete login flow successful')
+    console.log('👤 User authenticated:', {
+      id: user.id,
+      username: user.username,
+      displayName: user.displayName,
+      email: user.email,
+      rolesCount: user.roles?.length || 0,
+      permissionsCount: user.permissions?.length || 0,
+      menuAccessCount: user.menuItems?.length || 0
+    })
+    
     return user
   },
 

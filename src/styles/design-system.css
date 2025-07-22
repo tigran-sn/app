@@ -63,6 +63,10 @@
   --spacing-20: 5rem;     /* 80px */
   --spacing-24: 6rem;     /* 96px */
   
+  /* ============= LAYOUT HEIGHTS ============= */
+  
+  --nav-height: 64px;      /* Main navigation bar height */
+  
   /* ============= TYPOGRAPHY ============= */
   
   /* Font Families */

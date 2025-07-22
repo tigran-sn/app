@@ -1,4 +1,4 @@
-import { createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { createBrowserRouter, type RouteObject, Navigate } from 'react-router-dom'
 import App from '@/components/App'
 import { Home, Login, SignUp, Dashboard, NotFound } from '@/pages'
 import { ProtectedRoute, PublicOnlyRoute } from '@/components/RouteGuards'
@@ -76,6 +76,15 @@ const routes: AppRoute[] = [
           title: 'Dashboard - React Learning',
           description: 'Your personal dashboard',
           requiresAuth: true
+        }
+      },
+      {
+        path: 'home',
+        element: <Navigate to="/" replace />,
+        metadata: {
+          title: 'Home Redirect',
+          description: 'Redirects to home page',
+          requiresAuth: false
         }
       }
     ]
